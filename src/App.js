@@ -3,109 +3,91 @@ import './App.css';
 
 import cx from 'classnames';
 
-const ROWS = () => [[null, null, null], [null, null, null], [null, null, null]];
-
 const WINNING_COMBOS = [
-  [[0, 0], [0, 1], [0, 2]],
+  [0, 1, 2],
+  [3, 4, 5],
+  [6, 7, 8],
 
-  [[1, 0], [1, 1], [1, 2]],
-  [[2, 0], [2, 1], [2, 2]],
+  [0, 3, 6],
+  [1, 4, 7],
+  [2, 5, 8],
 
-  [[0, 0], [1, 0], [2, 0]],
-  [[0, 1], [1, 1], [2, 1]],
-  [[0, 2], [1, 2], [2, 2]],
-
-  [[0, 0], [1, 1], [2, 2]],
-  [[0, 2], [1, 1], [2, 0]]
+  [0, 4, 8],
+  [6, 4, 2]
 ];
+
+const emptyState = () => ({
+  values: Array(9).fill(null),
+  win: null
+});
 
 const playerA = '0';
 const playerB = 'x';
 
 class App extends React.Component {
-  state = {
-    rows: ROWS()
-  };
+  state = emptyState();
 
-  turn(rowIndex, colIndex, player) {
-    const { rows } = this.state;
-
-    rows[rowIndex][colIndex] = player;
-    const isWin = this.checkWin(rows, player);
-    this.setState({ rows, win: isWin });
-
+  turn(index, player) {
+    const { values } = this.state;
+    values[index] = player;
+    const isWin = this.checkWin(values, player);
+    this.setState({ values, win: isWin });
     return isWin;
   }
 
-  handlePlayerA = (rowIndex, colIndex) => {
-    const { rows, win } = this.state;
-    if (win || rows[rowIndex][colIndex]) return;
+  handleBoxClick = index => {
+    const { values, win } = this.state;
+    if (win || values[index]) return;
 
-    const isWin = this.turn(rowIndex, colIndex, playerA);
+    const isWin = this.turn(index, playerA);
 
     if (!isWin) {
-      const next = this.randomPick(rows);
-      next && this.turn(...next, playerB);
+      const nextIndex = this.randomPick(values);
+      if (nextIndex !== null) this.turn(nextIndex, playerB);
     }
   };
 
-  randomPick = rows => {
-    const options = rows.reduce((acc, row, rowIndex) => {
-      row.forEach((value, colIndex) => {
-        if (!value) acc.push([rowIndex, colIndex]);
-      });
-      return acc;
-    }, []);
-
+  randomPick = values => {
+    const options = values.reduce(
+      (acc, value, index) => (value === null ? [...acc, index] : acc),
+      []
+    );
     return (
       options.length > 0 && options[Math.floor(Math.random() * options.length)]
     );
   };
 
-  handleReplay = () => this.setState({ rows: ROWS(), win: null });
+  handleReplay = () => this.setState(emptyState());
 
-  isWinningCell = (rowIndex, colIndex) =>
-    this.state.win &&
-    this.state.win.some(([y, x]) => y === rowIndex && x === colIndex);
+  isWinningCell = index =>
+    this.state.win && this.state.win.indexOf(index) !== -1;
 
-  checkWin(rows, player) {
-    let win = null;
+  checkWin(values, player) {
     for (const combo of WINNING_COMBOS) {
-      if (
-        combo.every(
-          ([rowIndex, colIndex]) => rows[rowIndex][colIndex] === player
-        )
-      ) {
-        win = combo;
-      }
+      if (combo.every(index => values[index] === player)) return combo;
     }
-    return win;
+    return null;
+  }
+
+  renderBoxes() {
+    return this.state.values.map((value, index) => (
+      <div
+        key={index}
+        onClick={() => this.handleBoxClick(index)}
+        className={cx('box', {
+          locked: this.state.win || this.state.values[index],
+          win: this.isWinningCell(index)
+        })}
+      >
+        {value}
+      </div>
+    ));
   }
 
   render() {
-    const { rows, win } = this.state;
     return (
       <main>
-        <table>
-          <tbody>
-            {rows.map((row, rowIndex) => (
-              <tr key={rowIndex}>
-                {row.map((value, colIndex) => (
-                  <td
-                    className={cx({
-                      locked: win || rows[rowIndex][colIndex],
-                      win: this.isWinningCell(rowIndex, colIndex)
-                    })}
-                    key={colIndex}
-                    onClick={() => this.handlePlayerA(rowIndex, colIndex)}
-                  >
-                    <em>{value}</em>
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="container">{this.renderBoxes()}</div>
         <button onClick={this.handleReplay}>Replay</button>
       </main>
     );

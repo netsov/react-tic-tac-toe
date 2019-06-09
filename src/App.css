@@ -7,46 +7,33 @@ main {
     flex-direction: column;
 }
 
-td {
-    width: 100px;
-    height: 100px;
-    vertical-align: center;
-    text-align: center;
-    border: 1px solid #333;
-    cursor: pointer;
-    font-size: xx-large;
-}
-
-table {
-    border-collapse: collapse;
-}
-
-tr:first-child td {
-    border-top: 0;
-}
-
-tr:last-child td {
-    border-bottom: 0;
-}
-
-td:first-child {
-    border-left: 0;
-}
-
-td:last-child {
-    border-right: 0;
-}
-
 button {
     height: 5em;
-    width: 25em;
+    width: 310px;
     margin-top: 5em;
 }
 
 .locked {
-    cursor: default;
+    cursor: default !important;
 }
 
 .win {
-    background-color: blue;
+    background-color: greenyellow;
+}
+
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    width: 310px;
+}
+
+.box {
+    width: 100px;
+    height: 100px;
+    border: 1px solid #333333;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    font-size: xx-large;
 }
