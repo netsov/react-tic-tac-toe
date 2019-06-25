@@ -16,13 +16,15 @@ const WINNING_COMBOS = [
   [6, 4, 2]
 ];
 
+const EMPTY_VALUE = null;
+
 const emptyState = () => ({
   values: Array(9).fill(null),
   win: null
 });
 
-const playerA = '0';
-const playerB = 'x';
+const playerA = 'O';
+const playerB = 'X';
 
 class App extends React.Component {
   state = emptyState();
@@ -42,12 +44,56 @@ class App extends React.Component {
     const isWin = this.turn(index, playerA);
 
     if (!isWin) {
-      const nextIndex = this.randomPick(values);
+      const nextIndex = this.calcNextMove(values);
       if (nextIndex !== null) this.turn(nextIndex, playerB);
     }
   };
 
-  randomPick = values => {
+  getWinningIndex = values => {
+    for (const combo of WINNING_COMBOS) {
+      let candidate;
+      for (const i of combo) {
+        if (values[i] === playerA) {
+          candidate = undefined;
+          break;
+        }
+
+        if (values[i] === EMPTY_VALUE) {
+          if (candidate === undefined) {
+            candidate = i;
+          } else {
+            candidate = undefined;
+            break;
+          }
+        }
+      }
+      if (candidate !== undefined) return candidate;
+    }
+  };
+
+  getDefensiveIndex = values => {
+    for (const combo of WINNING_COMBOS) {
+      let candidate;
+      for (const i of combo) {
+        if (values[i] === playerB) {
+          candidate = undefined;
+          break;
+        }
+
+        if (values[i] === EMPTY_VALUE) {
+          if (candidate === undefined) {
+            candidate = i;
+          } else {
+            candidate = undefined;
+            break;
+          }
+        }
+      }
+      if (candidate !== undefined) return candidate;
+    }
+  };
+
+  getRandomEmptyIndex = values => {
     const options = values.reduce(
       (acc, value, index) => (value === null ? [...acc, index] : acc),
       []
@@ -55,6 +101,16 @@ class App extends React.Component {
     return (
       options.length > 0 && options[Math.floor(Math.random() * options.length)]
     );
+  };
+
+  calcNextMove = values => {
+    const winningIndex = this.getWinningIndex(values);
+    if (winningIndex !== undefined) return winningIndex;
+
+    const defensiveIndex = this.getDefensiveIndex(values);
+    if (defensiveIndex !== undefined) return defensiveIndex;
+
+    return this.getRandomEmptyIndex(values);
   };
 
   handleReplay = () => this.setState(emptyState());
@@ -70,14 +126,18 @@ class App extends React.Component {
   }
 
   renderBoxes() {
+    const getBoxClassName = (value, index) =>
+      cx('box', {
+        locked: this.state.win || this.state.values[index],
+        win: this.isWinningCell(index),
+        playerA: value === playerA,
+        playerB: value === playerB
+      });
     return this.state.values.map((value, index) => (
       <div
         key={index}
         onClick={() => this.handleBoxClick(index)}
-        className={cx('box', {
-          locked: this.state.win || this.state.values[index],
-          win: this.isWinningCell(index)
-        })}
+        className={getBoxClassName(value, index)}
       >
         {value}
       </div>
@@ -85,10 +145,19 @@ class App extends React.Component {
   }
 
   render() {
+    const showReplayBtn =
+      this.state.win || this.state.values.every(i => i !== EMPTY_VALUE);
     return (
       <main>
-        <div className="container">{this.renderBoxes()}</div>
-        <button onClick={this.handleReplay}>Replay</button>
+        <div>
+          <div className="container">{this.renderBoxes()}</div>
+          <button
+            className={cx('replay', { visible: showReplayBtn })}
+            onClick={this.handleReplay}
+          >
+            Replay
+          </button>
+        </div>
       </main>
     );
   }
