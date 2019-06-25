@@ -23,8 +23,8 @@ const emptyState = () => ({
   win: null
 });
 
-const playerA = 'O';
-const playerB = 'X';
+const playerA = 'X';
+const playerB = 'O';
 
 class App extends React.Component {
   state = emptyState();
