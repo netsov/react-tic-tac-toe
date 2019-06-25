@@ -1,3 +1,7 @@
+:root {
+    --box-size: 150px;
+}
+
 main {
     display: flex;
     width: 100vw;
@@ -34,12 +38,12 @@ button:not(.visible) {
 .container {
     display: flex;
     flex-wrap: wrap;
-    width: 300px;
+    width: calc(3 * var(--box-size));
 }
 
 .box {
-    width: 100px;
-    height: 100px;
+    width: var(--box-size);
+    height: var(--box-size);
     border: 1px solid #333333;
     display: flex;
     justify-content: center;
